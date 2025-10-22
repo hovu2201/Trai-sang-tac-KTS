@@ -5,6 +5,7 @@ import {
   PanelType,
 } from '../types';
 import {
+  IconAngleCenter,
   IconAspectRatio,
   IconDetails,
   IconDramatization,
@@ -86,8 +87,8 @@ const ControlBar: React.FC<ControlBarProps> = ({
   const PANELS: { id: PanelType, label: string, icon: React.FC<any> }[] = [
     { id: 'phongnam', label: 'Phong Nam', icon: IconInfo },
     { id: 'context', label: 'Hình ảnh', icon: IconImage },
+    { id: 'angleGeneration', label: 'Góc nhìn', icon: IconAngleCenter },
     { id: 'views2d', label: 'Bản vẽ 2D', icon: IconViewPlan },
-    { id: 'angleGeneration', label: 'Góc nhìn', icon: IconEdit },
     { id: 'style', label: 'Tiếp cận', icon: IconStyle },
     { id: 'materials', label: 'Vật liệu', icon: IconMaterial },
     { id: 'elements', label: 'Yếu tố', icon: IconDetails },
@@ -101,7 +102,7 @@ const ControlBar: React.FC<ControlBarProps> = ({
       <div className="hidden lg:flex bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 flex-col p-2 space-y-1 w-28 flex-shrink-0">
         <div className="space-y-1">
           <p className="text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider py-1">THIẾT KẾ</p>
-          {PANELS.slice(0, 8).map((panel) => (
+          {PANELS.slice(0, 9).map((panel) => (
             <NavButton
               key={panel.id}
               label={panel.label}

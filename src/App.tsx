@@ -42,7 +42,6 @@ import {
 import {
   generateShortDescription,
 } from './services/architecturalDescriptionService';
-import { saveImageToLocalDirectory } from './services/fileSystemService';
 import { saveToGallery } from './services/galleryService';
 import {
   editImage,
@@ -70,6 +69,9 @@ import {
 const App: React.FC = () => {
     // Auth State
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    
+    // Gallery refresh trigger - tăng giá trị này để force PanelGallery reload
+    const [galleryRefreshTrigger, setGalleryRefreshTrigger] = useState(0);
     
     // Theme State
     const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -111,6 +113,15 @@ const App: React.FC = () => {
         }
     }, []);
     
+    // Canvas chính bắt đầu rỗng - chỉ hiển thị ảnh tạo trong phiên hiện tại
+    // Thư viện ảnh (PanelGallery) tự load ảnh từ localStorage
+    useEffect(() => {
+        if (isAuthenticated) {
+            // Không load ảnh cũ vào results - để canvas chính trống
+            setResults([]);
+        }
+    }, [isAuthenticated]);
+    
     const handleLogin = () => {
         setIsAuthenticated(true);
         localStorage.setItem('phong_nam_auth', 'true');
@@ -143,8 +154,7 @@ const App: React.FC = () => {
     const [selectedConversionType, setSelectedConversionType] = useState<string>(CONVERSION_OPTIONS[0].id);
     const [selectedRoomType, setSelectedRoomType] = useState<string>(ROOM_TYPES[0]);
 
-    // Angle Generation Panel state
-    const [angleGenerationImage, setAngleGenerationImage] = useState<RenovationResult | null>(null);
+
 
     const handleImageSelect = useCallback(async (file: File | null, type: 'base' | 'reference' | 'floorPlan') => {
         if (!file) {
@@ -264,18 +274,15 @@ const App: React.FC = () => {
                 width: selectedAspectRatio.id === 'from_input' ? sourceImageFile.width : selectedAspectRatio.width,
                 height: selectedAspectRatio.id === 'from_input' ? sourceImageFile.height : selectedAspectRatio.height,
             };
+            
+            // Thêm ảnh mới vào canvas chính (phiên hiện tại)
             setResults(prev => [newResult, ...prev]);
             setSelectedImage(newResult);
             
-            // Lưu vào Gallery
-            saveToGallery(newResult);
-            
-            // Lưu vào thư mục local nếu đã chọn
-            try {
-                await saveImageToLocalDirectory(imageUrl, `generated_${newResult.id}.png`);
-            } catch (localErr) {
-                console.warn('Could not save to local directory:', localErr);
-            }
+            // Save to gallery (sẽ tự động lưu vào file system)
+            await saveToGallery(newResult);
+            setGalleryRefreshTrigger(prev => prev + 1);
+            console.log('✅ Image saved to gallery:', newResult.id);
             
             // Chỉ tạo description cho ảnh 3D ban đầu từ giao diện chính
             // KHÔNG tạo cho: customPrompt (góc nhìn khác) hoặc views2d (bản vẽ 2D)
@@ -289,22 +296,24 @@ const App: React.FC = () => {
                     selectedElements: selectedElements.map(e => e.name),
                     selectedDramatization: selectedDramatization.map(d => d.name).join(', '),
                     prompt: mainPrompt
-                }).then(description => {
+                }).then(async (description) => {
                     // Cập nhật description sau khi có
                     const updatedResult = { ...newResult, description };
-                    setResults(prev => prev.map(r => r.id === newResult.id ? updatedResult : r));
                     setSelectedImage(updatedResult);
-                    // Cập nhật gallery với description mới
-                    saveToGallery(updatedResult);
-                }).catch(err => {
+                    // Update in gallery
+                    await saveToGallery(updatedResult);
+                    setGalleryRefreshTrigger(prev => prev + 1);
+                    console.log('✅ Description updated in gallery');
+                }).catch(async (err) => {
                     console.error("Error generating description:", err);
                     // Fallback description
                     const fallbackDesc = `Phương án ${selectedStyle.name} cho Làng cổ Phong Nam, kết hợp ${selectedMaterials?.name || 'vật liệu truyền thống'}.`;
                     const updatedResult = { ...newResult, description: fallbackDesc };
-                    setResults(prev => prev.map(r => r.id === newResult.id ? updatedResult : r));
                     setSelectedImage(updatedResult);
-                    // Cập nhật gallery với description mới
-                    saveToGallery(updatedResult);
+                    // Update in gallery
+                    await saveToGallery(updatedResult);
+                    setGalleryRefreshTrigger(prev => prev + 1);
+                    console.log('✅ Fallback description updated in gallery');
                 });
             }
         } catch (err: any) {
@@ -336,19 +345,20 @@ const App: React.FC = () => {
                 width: imageToEdit.width,
                 height: imageToEdit.height,
             };
+            
+            // Thêm ảnh đã chỉnh sửa vào canvas chính
             setResults(prev => [newResult, ...prev]);
             setSelectedImage(newResult);
             
-            // Lưu vào Gallery
-            saveToGallery(newResult);
+            // Save to gallery
+            await saveToGallery(newResult);
+            setGalleryRefreshTrigger(prev => prev + 1);
+            console.log('✅ Edited image saved to gallery:', newResult.id);
             
-            // Lưu vào thư mục local nếu đã chọn
-            try {
-                await saveImageToLocalDirectory(imageUrl, `edit_${newResult.id}.png`);
-            } catch (localErr) {
-                console.warn('Could not save to local directory:', localErr);
-                // Không hiển thị lỗi vì ảnh đã được lưu vào gallery
-            }
+            // Save to gallery (sẽ tự động lưu vào file system)
+            await saveToGallery(newResult);
+            setGalleryRefreshTrigger(prev => prev + 1);
+            console.log('✅ Edited image saved to gallery:', newResult.id);
             
             // Giữ ở chế độ editing, cập nhật ảnh đang chọn
             setImageToEdit(newResult);
@@ -413,20 +423,18 @@ const App: React.FC = () => {
             width: imageToNote?.width ?? 1024,
             height: imageToNote?.height ?? 1024,
         };
+        
+        // Thêm ảnh có ghi chú vào canvas chính
         setResults(prev => [newResult, ...prev]);
         setSelectedImage(newResult);
         setAppMode('generate');
         setImageToNote(null);
         
-        // Lưu vào Gallery
-        saveToGallery(newResult);
-        
-        // Lưu vào thư mục local nếu đã chọn
-        try {
-            await saveImageToLocalDirectory(notedImageDataUrl, `note_${newResult.id}.png`);
-        } catch (localErr) {
-            console.warn('Could not save to local directory:', localErr);
-        }
+        // Save to gallery
+        // Save to gallery (sẽ tự động lưu vào file system)
+        await saveToGallery(newResult);
+        setGalleryRefreshTrigger(prev => prev + 1);
+        console.log('✅ Note saved to gallery:', newResult.id);
     };
     
     const handleGallerySelectImage = (image: RenovationResult) => {
@@ -446,30 +454,7 @@ const App: React.FC = () => {
         setActivePanel('views2d');
     };
 
-    const handleAngleGenerationImageSelect = (image: RenovationResult | null) => {
-        setAngleGenerationImage(image);
-        if (image) {
-            setSelectedImage(image);
-        }
-    };
 
-    const handleAngleGenerationImageUpload = async (file: File) => {
-        const processedImage = await processBaseImage(file);
-        const result: RenovationResult = {
-            id: Date.now().toString(),
-            imageUrl: processedImage.url,
-            prompt: 'Uploaded for angle generation',
-            width: processedImage.width,
-            height: processedImage.height,
-        };
-        setAngleGenerationImage(result);
-        setSelectedImage(result);
-    };
-
-    const handleAngleGenerate = (anglePrompt: string) => {
-        // Tạo với custom prompt từ angle selection
-        handleGenerate(anglePrompt);
-    };
 
     const renderActivePanel = () => {
         const hasReferenceImage = !!referenceImageFile;
@@ -477,22 +462,64 @@ const App: React.FC = () => {
         switch(activePanel) {
             case 'phongnam': return <PanelPhongNam darkMode={isDarkMode} />;
             case 'context': return <PanelImages baseImageUrl={baseImageFile?.url || null} referenceImageUrl={referenceImageFile?.url || null} onImageSelect={handleImageSelect} referenceStrength={referenceStrength} onReferenceStrengthChange={setReferenceStrength} inputFidelity={inputFidelity} onInputFidelityChange={setInputFidelity} mainPrompt={mainPrompt} onMainPromptChange={setMainPrompt} />;
+            case 'angleGeneration': return <PanelAngleGeneration 
+                currentImage={selectedImage} 
+                galleryImages={results} 
+                onGenerate={handleGenerate} 
+                isLoading={isLoading} 
+                canGenerate={canGenerate}
+                onImageSelect={setSelectedImage}
+                onImageUpload={async (file) => {
+                    try {
+                        const processedFile = await processBaseImage(file);
+                        // Convert to RenovationResult format
+                        const newResult: RenovationResult = {
+                            id: `uploaded-${Date.now()}`,
+                            imageUrl: processedFile.url,
+                            prompt: 'Uploaded image',
+                            width: processedFile.width,
+                            height: processedFile.height,
+                        };
+                        setSelectedImage(newResult);
+                    } catch (err) {
+                        console.error('Error processing uploaded image:', err);
+                        setError('Could not process the uploaded image.');
+                    }
+                }}
+            />;
             case 'style': return <PanelStyle styles={[...ARCHITECTURAL_STYLES, ...INTERIOR_STYLES]} selectedStyle={selectedStyle.prompt} onStyleSelect={setSelectedStyle} hasReferenceImage={hasReferenceImage} />;
             case 'materials': return <PanelMaterials materialCategories={MATERIAL_COMBINATIONS} selectedCombination={selectedMaterials} onCombinationSelect={setSelectedMaterials} hasReferenceImage={hasReferenceImage} />;
             case 'elements': return <PanelDetails exteriorCategories={EXTERIOR_ARCHITECTURAL_DETAILS} interiorCategories={INTERIOR_ARCHITECTURAL_DETAILS} selectedElements={selectedElements} onSelectionChange={setSelectedElements} hasReferenceImage={hasReferenceImage} />;
             case 'dramatization': return <PanelDramatization dramatizationCategories={DRAMATIZATION_OPTIONS} selectedOptions={selectedDramatization} onSelectionChange={setSelectedDramatization} hasReferenceImage={hasReferenceImage} />;
             case 'aspectRatio': return <PanelAspectRatio aspectRatioOptions={ASPECT_RATIO_OPTIONS} selectedAspectRatio={selectedAspectRatio} onAspectRatioSelect={setSelectedAspectRatio} baseImage={baseImageFile} />;
-            case 'views2d': return <Panel2DViews viewOptions={VIEW_2D_OPTIONS} onGenerate={handleGenerate} isLoading={isLoading} canGenerate={canGenerate} />;
-            case 'angleGeneration': return <PanelAngleGeneration 
-                currentImage={angleGenerationImage || selectedImage}
-                galleryImages={results}
-                onGenerate={handleAngleGenerate}
-                isLoading={isLoading}
+            case 'views2d': return <Panel2DViews 
+                viewOptions={VIEW_2D_OPTIONS} 
+                onGenerate={handleGenerate} 
+                isLoading={isLoading} 
                 canGenerate={canGenerate}
-                onImageSelect={handleAngleGenerationImageSelect}
-                onImageUpload={handleAngleGenerationImageUpload}
+                currentImage={selectedImage}
+                galleryImages={results}
+                onImageSelect={setSelectedImage}
+                onImageUpload={async (file) => {
+                    try {
+                        const processedFile = await processBaseImage(file);
+                        const newResult: RenovationResult = {
+                            id: `uploaded-${Date.now()}`,
+                            imageUrl: processedFile.url,
+                            prompt: 'Uploaded image for 2D view',
+                            width: processedFile.width,
+                            height: processedFile.height,
+                        };
+                        setSelectedImage(newResult);
+                    } catch (err) {
+                        console.error('Error processing uploaded image:', err);
+                        setError('Could not process the uploaded image.');
+                    }
+                }}
             />;
             case 'gallery': return <PanelGallery 
+                key={`gallery-${results.length}`}
+                refreshTrigger={galleryRefreshTrigger}
                 onSelectImage={handleGallerySelectImage} 
                 onEditImage={handleImageSelectForEdit} 
                 onViewImage={handleImageZoom} 
@@ -606,6 +633,7 @@ const App: React.FC = () => {
                       {activePanel === 'gallery' ? (
                         <div className="lg:hidden h-full">
                           <PanelGallery 
+                            refreshTrigger={galleryRefreshTrigger}
                             onSelectImage={handleGallerySelectImage} 
                             onEditImage={handleImageSelectForEdit} 
                             onViewImage={handleImageZoom} 

@@ -1,65 +1,8 @@
 import React, { useState } from 'react';
 
+import { EXTERIOR_ANGLE_PROMPTS } from '../../constants/angles';
 import { RenovationResult } from '../../types';
 import { IconImage } from '../icons';
-
-interface AngleOption {
-  id: string;
-  name: string;
-  prompt: string;
-  icon: string;
-}
-
-const ANGLE_OPTIONS: AngleOption[] = [
-  {
-    id: 'front',
-    name: 'Mặt tiền',
-    prompt: 'Create a front elevation view of the same architectural design, maintaining all design elements and materials.',
-    icon: '🏛️'
-  },
-  {
-    id: 'side',
-    name: 'Cạnh bên',
-    prompt: 'Create a side view of the same architectural design from a different angle, showing the side elevation.',
-    icon: '📐'
-  },
-  {
-    id: 'corner',
-    name: 'Góc nghiêng',
-    prompt: 'Create an angled corner perspective view of the same architectural design, showing multiple facades.',
-    icon: '📊'
-  },
-  {
-    id: 'aerial',
-    name: 'Góc trên cao',
-    prompt: 'Create an aerial bird\'s eye view of the same architectural design from above, showing the roof and overall layout.',
-    icon: '🚁'
-  },
-  {
-    id: 'low',
-    name: 'Góc thấp',
-    prompt: 'Create a low angle view looking up at the same architectural design, emphasizing height and grandeur.',
-    icon: '📷'
-  },
-  {
-    id: 'interior',
-    name: 'Góc trong nhà',
-    prompt: 'Create an interior perspective view showing the inside of the same architectural design.',
-    icon: '🏠'
-  },
-  {
-    id: 'dusk',
-    name: 'Hoàng hôn',
-    prompt: 'Create the same architectural design view during golden hour/dusk with warm lighting.',
-    icon: '🌅'
-  },
-  {
-    id: 'night',
-    name: 'Ban đêm',
-    prompt: 'Create the same architectural design view at night with artificial lighting.',
-    icon: '🌙'
-  },
-];
 
 interface PanelAngleGenerationProps {
   currentImage: RenovationResult | null;
@@ -80,7 +23,7 @@ export const PanelAngleGeneration: React.FC<PanelAngleGenerationProps> = ({
   onImageSelect,
   onImageUpload,
 }) => {
-  const [selectedAngle, setSelectedAngle] = useState<AngleOption | null>(null);
+  const [selectedAnglePrompt, setSelectedAnglePrompt] = useState<string | null>(null);
   const [showGallery, setShowGallery] = useState(false);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,8 +34,8 @@ export const PanelAngleGeneration: React.FC<PanelAngleGenerationProps> = ({
   };
 
   const handleGenerate = () => {
-    if (!selectedAngle || !currentImage) return;
-    onGenerate(selectedAngle.prompt);
+    if (!selectedAnglePrompt || !currentImage) return;
+    onGenerate(selectedAnglePrompt);
   };
 
   return (
@@ -222,22 +165,19 @@ export const PanelAngleGeneration: React.FC<PanelAngleGenerationProps> = ({
         <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
           Chọn góc nhìn muốn tạo
         </label>
-        <div className="grid grid-cols-2 gap-3">
-          {ANGLE_OPTIONS.map((angle) => (
+        <div className="space-y-2 max-h-[400px] overflow-y-auto">
+          {EXTERIOR_ANGLE_PROMPTS.map((anglePrompt, index) => (
             <button
-              key={angle.id}
-              onClick={() => setSelectedAngle(angle)}
+              key={index}
+              onClick={() => setSelectedAnglePrompt(anglePrompt)}
               disabled={!currentImage}
-              className={`p-4 rounded-lg border-2 transition-all text-left ${
-                selectedAngle?.id === angle.id
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
+              className={`w-full p-3 rounded-lg border-2 transition-all text-left ${
+                selectedAnglePrompt === anglePrompt
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 text-gray-700 dark:text-gray-300'
               } ${!currentImage ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-2xl">{angle.icon}</span>
-                <span className="font-semibold text-sm">{angle.name}</span>
-              </div>
+              <span className="text-sm font-medium">{anglePrompt}</span>
             </button>
           ))}
         </div>
@@ -246,9 +186,9 @@ export const PanelAngleGeneration: React.FC<PanelAngleGenerationProps> = ({
       {/* Generate Button */}
       <button
         onClick={handleGenerate}
-        disabled={isLoading || !canGenerate || !currentImage || !selectedAngle}
+        disabled={isLoading || !canGenerate || !currentImage || !selectedAnglePrompt}
         className={`w-full py-4 rounded-lg font-bold text-base transition-all ${
-          isLoading || !canGenerate || !currentImage || !selectedAngle
+          isLoading || !canGenerate || !currentImage || !selectedAnglePrompt
             ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
             : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl active:scale-95'
         }`}
@@ -265,17 +205,17 @@ export const PanelAngleGeneration: React.FC<PanelAngleGenerationProps> = ({
           <span>
             {!currentImage 
               ? '⚠️ Vui lòng chọn ảnh' 
-              : !selectedAngle 
+              : !selectedAnglePrompt 
                 ? '⚠️ Vui lòng chọn góc nhìn'
                 : '✨ Tạo góc nhìn mới'}
           </span>
         )}
       </button>
 
-      {selectedAngle && currentImage && (
+      {selectedAnglePrompt && currentImage && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
           <p className="text-xs text-blue-700 dark:text-blue-300">
-            <strong>Sẽ tạo:</strong> {selectedAngle.name} từ ảnh đã chọn
+            <strong>Sẽ tạo:</strong> {selectedAnglePrompt}
           </p>
         </div>
       )}

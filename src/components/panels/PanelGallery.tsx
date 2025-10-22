@@ -27,6 +27,7 @@ interface PanelGalleryProps {
   onNoteImage: (image: RenovationResult) => void;
   onGenerateAngle: (image: RenovationResult) => void;
   onGenerate2D: (image: RenovationResult) => void;
+  refreshTrigger?: number; // Thêm prop để force refresh
 }
 
 type SortOption = 'newest' | 'oldest' | 'favorites';
@@ -40,6 +41,7 @@ export const PanelGallery: React.FC<PanelGalleryProps> = ({
   onNoteImage,
   onGenerateAngle,
   onGenerate2D,
+  refreshTrigger,
 }) => {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [filteredImages, setFilteredImages] = useState<GalleryImage[]>([]);
@@ -52,13 +54,22 @@ export const PanelGallery: React.FC<PanelGalleryProps> = ({
 
   // Load images and storage info
   useEffect(() => {
+    console.log('🎬 PanelGallery mounted - Loading images...');
     loadImages();
     updateStorageInfo();
     setLocalDirectory(getDirectoryName());
   }, []);
 
-  const updateStorageInfo = () => {
-    const info = getStorageInfo();
+  // Refresh when refreshTrigger changes (khi có ảnh mới được tạo)
+  useEffect(() => {
+    if (refreshTrigger) {
+      console.log('🔄 PanelGallery refreshing due to trigger:', refreshTrigger);
+      loadImages();
+    }
+  }, [refreshTrigger]);
+
+  const updateStorageInfo = async () => {
+    const info = await getStorageInfo();
     setStorageInfo(info);
   };
 
@@ -102,10 +113,23 @@ export const PanelGallery: React.FC<PanelGalleryProps> = ({
     setFilteredImages(filtered);
   }, [images, sortBy, showFavoritesOnly, searchTerm]);
 
-  const loadImages = () => {
-    const loaded = getGalleryImages();
-    setImages(loaded);
-    updateStorageInfo();
+  const loadImages = async () => {
+    try {
+      const loaded = await getGalleryImages();
+      console.log('📸 PanelGallery loadImages() - Loaded', loaded.length, 'images from local directory');
+      setImages(loaded);
+      updateStorageInfo();
+      
+      // Nếu có metadata nhưng không load được ảnh nào, show warning
+      const metadata = getGalleryImages as any; // Get metadata count
+      if (loaded.length === 0 && getDirectoryName()) {
+        console.warn('⚠️ No images loaded. May need to reselect directory.');
+        // User will see empty gallery - can manually click "Chọn thư mục" again
+      }
+    } catch (error) {
+      console.error('Error loading images:', error);
+      setImages([]);
+    }
   };
 
   const handleSelectDirectory = async () => {
@@ -132,6 +156,14 @@ export const PanelGallery: React.FC<PanelGalleryProps> = ({
     
     if (confirmed) {
       await downloadAllImagesAsZip(images);
+    }
+  };
+
+  const handleClearGallery = () => {
+    if (window.confirm('⚠️ XÓA TẤT CẢ ẢNH?\n\nHành động này KHÔNG thể hoàn tác!\n\nBạn có chắc chắn muốn xóa toàn bộ thư viện?')) {
+      localStorage.removeItem('phong_nam_gallery');
+      loadImages();
+      alert('✅ Đã xóa toàn bộ thư viện!');
     }
   };
 
@@ -214,6 +246,18 @@ export const PanelGallery: React.FC<PanelGalleryProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               <span>ZIP</span>
+            </button>
+            
+            <button
+              onClick={handleClearGallery}
+              disabled={images.length === 0}
+              className="px-2 lg:px-3 py-1.5 lg:py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-[10px] lg:text-xs font-medium transition-colors flex items-center gap-1"
+              title="Xóa toàn bộ thư viện (không thể hoàn tác)"
+            >
+              <svg className="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span className="hidden lg:inline">Xóa</span>
             </button>
           </div>
         </div>
