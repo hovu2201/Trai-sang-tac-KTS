@@ -1,0 +1,78 @@
+import { DramatizationCategory } from '../types';
+
+export const DRAMATIZATION_OPTIONS: DramatizationCategory[] = [
+  {
+    category: 'Thời gian & Thời tiết',
+    options: [
+      { id: 'dram-time-sunrise', name: 'Bình minh', prompt: 'serene dawn lighting, soft morning glow, mist over the fields' },
+      { id: 'dram-time-noon', name: 'Nắng trưa gay gắt', prompt: 'harsh midday sun, strong shadows, a sense of heat and stillness' },
+      { id: 'dram-time-golden', name: 'Hoàng hôn', prompt: 'warm, golden hour lighting, long shadows, a peaceful atmosphere' },
+      { id: 'dram-time-dusk', name: 'Chạng vạng', prompt: 'tranquil dusk lighting, deep blue sky, first lights turning on' },
+      { id: 'dram-time-night', name: 'Đêm tĩnh mịch', prompt: 'a quiet night shot, illuminated by moonlight and architectural lighting' },
+      { id: 'dram-weather-rain', name: 'Cơn mưa rào', prompt: 'a heavy summer downpour, wet surfaces reflecting light, moody atmosphere' },
+      { id: 'dram-weather-drizzle', name: 'Mưa dầm', prompt: 'a persistent, drizzling rain, overcast sky, a melancholic and quiet mood' },
+      { id: 'dram-weather-afterrain', name: 'Sau cơn mưa', prompt: 'the atmosphere after a rain shower, clean air, glistening leaves, puddles on the ground' },
+      { id: 'dram-weather-fog', name: 'Sương mù buổi sáng', prompt: 'a foggy, mysterious morning scene with soft, diffused light' },
+      { id: 'dram-weather-windy', name: 'Ngày lộng gió', prompt: 'a windy day, showing movement in trees, flags, and clothing' },
+      { id: 'dram-time-blue-hour', name: 'Blue Hour', prompt: 'magical blue hour just after sunset, deep blue sky with warm artificial lights glowing' },
+      { id: 'dram-weather-storm', name: 'Bão nhiệt đới', prompt: 'dramatic tropical storm approaching, dark clouds, strong winds bending trees' },
+      { id: 'dram-weather-humid', name: 'Trời oi bức', prompt: 'humid tropical day atmosphere with heat haze and heavy air, people seeking shade' },
+      { id: 'dram-time-monsoon', name: 'Mùa mưa miền Trung', prompt: 'Central Vietnam monsoon season, persistent rain, flooded paths, people with conical hats' },
+      { id: 'dram-weather-dry', name: 'Mùa khô hanh', prompt: 'dry season with dusty roads, cracked earth, intense sunlight, seeking water' },
+    ],
+  },
+  {
+    category: 'Phong cách Nhiếp ảnh',
+    options: [
+      { id: 'dram-photo-drone', name: 'Góc nhìn từ trên cao (Drone)', prompt: 'an aerial drone shot, providing a high-angle, bird\'s-eye view of the site' },
+      { id: 'dram-photo-long', name: 'Phơi sáng (Long Exposure)', prompt: 'a long-exposure photograph, creating light trails from movement or silky smooth water' },
+      { id: 'dram-photo-telephoto', name: 'Chụp tele (Telephoto)', prompt: 'a telephoto lens shot, compressing the perspective and isolating details' },
+      { id: 'dram-photo-cinematic', name: 'Tông màu Điện ảnh', prompt: 'cinematic color grading with a specific mood (e.g., teal and orange, moody greens)' },
+      { id: 'dram-photo-vintage', name: 'Tông màu ảnh cũ', prompt: 'a vintage photo effect, with faded colors and slight grain, like an old documentary photo' },
+      { id: 'dram-photo-bw', name: 'Ảnh đen trắng', prompt: 'a dramatic black and white photograph, focusing on form, light, and shadow' },
+      { id: 'dram-light-rays', name: 'Tia nắng xuyên kẽ lá', prompt: 'dramatic god rays or sunbeams filtering through tree canopies or windows' },
+    ],
+  },
+  {
+    category: 'Hoạt động & Con người',
+    options: [
+      { id: 'dram-people-local', name: 'Người dân sinh hoạt', prompt: 'include local people engaged in daily activities (farming, cycling, chatting), with motion blur for a natural feel' },
+      { id: 'dram-people-kids', name: 'Trẻ em chơi đùa', prompt: 'include children playing traditional games in the courtyard or on the street' },
+      { id: 'dram-people-festival', name: 'Lễ hội làng', prompt: 'depict a lively village festival scene with flags, processions, and people in traditional Ao Dai' },
+      { id: 'dram-people-market', name: 'Cảnh chợ quê', prompt: 'show a bustling village market scene with vendors and shoppers' },
+      { id: 'dram-people-solitary', name: 'Một bóng người', prompt: 'include a solitary figure (e.g., a monk, an old woman) to add a sense of scale and contemplation' },
+    ],
+  },
+   {
+    category: 'Yếu tố Cảm xúc',
+    options: [
+      { id: 'dram-element-smoke', name: 'Khói bếp', prompt: 'wisps of kitchen smoke rising from a chimney or roof, suggesting a homey feel' },
+      { id: 'dram-element-lanterns', name: 'Ánh đèn lồng', prompt: 'traditional silk or paper lanterns illuminating the scene at night' },
+      { id: 'dram-element-incense', name: 'Khói hương', prompt: 'drifting smoke from incense sticks in a temple or ancestral altar setting' },
+      { id: 'dram-element-laundry', name: 'Quần áo đang phơi', prompt: 'laundry hanging on a line, adding a touch of lived-in reality' },
+      { id: 'dram-element-fire', name: 'Ánh lửa', prompt: 'the warm glow of a cooking fire or a bonfire during a festival' },
+      { id: 'dram-element-water', name: 'Phản chiếu mặt nước', prompt: 'calm water surfaces reflecting buildings, sky, and landscape creating mirror effects' },
+      { id: 'dram-element-bicycles', name: 'Xe đạp tựa tường', prompt: 'bicycles leaning against walls or under trees, evoking peaceful village life' },
+      { id: 'dram-element-conical-hats', name: 'Nón lá', prompt: 'people wearing traditional conical hats (nón lá) adding authentic Vietnamese atmosphere' },
+      { id: 'dram-element-ao-dai', name: 'Áo dài truyền thống', prompt: 'figures in traditional Vietnamese long dress (áo dài) adding elegance and cultural identity' },
+      { id: 'dram-element-fishing-nets', name: 'Lưới đánh cá', prompt: 'fishing nets drying in the sun, evoking coastal and riverside village life' },
+      { id: 'dram-element-bamboo-fence', name: 'Hàng rào tre', prompt: 'traditional bamboo fences creating natural boundaries and rustic atmosphere' },
+      { id: 'dram-element-pottery', name: 'Chum nước, vò gạo', prompt: 'traditional ceramic water jars and rice containers adding authentic village details' },
+    ],
+  },
+  {
+    category: 'Đặc trưng Miền Trung',
+    options: [
+      { id: 'dram-central-han-river', name: 'Dọc sông Hàn', prompt: 'setting along Han River in Da Nang with river views, boats, and waterfront atmosphere' },
+      { id: 'dram-central-marble-mountains', name: 'Phối cảnh Ngũ Hành Sơn', prompt: 'Marble Mountains (Ngũ Hành Sơn) visible in background creating iconic Da Nang landscape' },
+      { id: 'dram-central-rice-fields', name: 'Ruộng lúa mùa gặt', prompt: 'Central Vietnam rice paddies during harvest season with golden rice, water buffalo, farmers' },
+      { id: 'dram-central-coconut-palms', name: 'Rừng dừa nước', prompt: 'coconut palm groves near waterways, typical of Central Vietnam coastal areas' },
+      { id: 'dram-central-fishing-boats', name: 'Thuyền đánh cá ven biển', prompt: 'traditional round fishing boats (thuyền thúng) and wooden boats along Central Vietnam coast' },
+      { id: 'dram-central-beach', name: 'Bờ biển Đà Nẵng', prompt: 'beautiful Da Nang beach backdrop with white sand, clear water, and coastal vegetation' },
+      { id: 'dram-central-conical-hat-vendor', name: 'Người bán hàng rong', prompt: 'street vendors with shoulder pole (gánh hàng rong) and conical hats selling local goods' },
+      { id: 'dram-central-dragon-bridge', name: 'Cầu Rồng Đà Nẵng', prompt: 'iconic Dragon Bridge of Da Nang visible in distance, blending modern and traditional' },
+      { id: 'dram-central-lotus-pond', name: 'Ao sen', prompt: 'lotus pond with blooming flowers, symbol of Vietnamese spirituality and purity' },
+      { id: 'dram-central-incense-village', name: 'Làng nghề hương', prompt: 'traditional incense-making village scene with colorful incense sticks drying in the sun' },
+    ],
+  },
+];
