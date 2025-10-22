@@ -14,6 +14,7 @@ import Lightbox from './components/Lightbox';
 import LoadingModal from './components/LoadingModal';
 import { NoteEditor } from './components/notes/NoteEditor';
 import { Panel2DViews } from './components/panels/Panel2DViews';
+import { PanelAngleGeneration } from './components/panels/PanelAngleGeneration';
 import { PanelAspectRatio } from './components/panels/PanelAspectRatio';
 import { PanelDetails } from './components/panels/PanelDetails';
 import { PanelDramatization } from './components/panels/PanelDramatization';
@@ -141,6 +142,9 @@ const App: React.FC = () => {
     const [floorPlanImage, setFloorPlanImage] = useState<ImageFile | null>(null);
     const [selectedConversionType, setSelectedConversionType] = useState<string>(CONVERSION_OPTIONS[0].id);
     const [selectedRoomType, setSelectedRoomType] = useState<string>(ROOM_TYPES[0]);
+
+    // Angle Generation Panel state
+    const [angleGenerationImage, setAngleGenerationImage] = useState<RenovationResult | null>(null);
 
     const handleImageSelect = useCallback(async (file: File | null, type: 'base' | 'reference' | 'floorPlan') => {
         if (!file) {
@@ -442,6 +446,31 @@ const App: React.FC = () => {
         setActivePanel('views2d');
     };
 
+    const handleAngleGenerationImageSelect = (image: RenovationResult | null) => {
+        setAngleGenerationImage(image);
+        if (image) {
+            setSelectedImage(image);
+        }
+    };
+
+    const handleAngleGenerationImageUpload = async (file: File) => {
+        const processedImage = await processBaseImage(file);
+        const result: RenovationResult = {
+            id: Date.now().toString(),
+            imageUrl: processedImage.url,
+            prompt: 'Uploaded for angle generation',
+            width: processedImage.width,
+            height: processedImage.height,
+        };
+        setAngleGenerationImage(result);
+        setSelectedImage(result);
+    };
+
+    const handleAngleGenerate = (anglePrompt: string) => {
+        // Tạo với custom prompt từ angle selection
+        handleGenerate(anglePrompt);
+    };
+
     const renderActivePanel = () => {
         const hasReferenceImage = !!referenceImageFile;
         
@@ -454,6 +483,15 @@ const App: React.FC = () => {
             case 'dramatization': return <PanelDramatization dramatizationCategories={DRAMATIZATION_OPTIONS} selectedOptions={selectedDramatization} onSelectionChange={setSelectedDramatization} hasReferenceImage={hasReferenceImage} />;
             case 'aspectRatio': return <PanelAspectRatio aspectRatioOptions={ASPECT_RATIO_OPTIONS} selectedAspectRatio={selectedAspectRatio} onAspectRatioSelect={setSelectedAspectRatio} baseImage={baseImageFile} />;
             case 'views2d': return <Panel2DViews viewOptions={VIEW_2D_OPTIONS} onGenerate={handleGenerate} isLoading={isLoading} canGenerate={canGenerate} />;
+            case 'angleGeneration': return <PanelAngleGeneration 
+                currentImage={angleGenerationImage || selectedImage}
+                galleryImages={results}
+                onGenerate={handleAngleGenerate}
+                isLoading={isLoading}
+                canGenerate={canGenerate}
+                onImageSelect={handleAngleGenerationImageSelect}
+                onImageUpload={handleAngleGenerationImageUpload}
+            />;
             case 'gallery': return <PanelGallery 
                 onSelectImage={handleGallerySelectImage} 
                 onEditImage={handleImageSelectForEdit} 

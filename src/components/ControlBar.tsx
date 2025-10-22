@@ -87,6 +87,7 @@ const ControlBar: React.FC<ControlBarProps> = ({
     { id: 'phongnam', label: 'Phong Nam', icon: IconInfo },
     { id: 'context', label: 'Hình ảnh', icon: IconImage },
     { id: 'views2d', label: 'Bản vẽ 2D', icon: IconViewPlan },
+    { id: 'angleGeneration', label: 'Góc nhìn', icon: IconEdit },
     { id: 'style', label: 'Tiếp cận', icon: IconStyle },
     { id: 'materials', label: 'Vật liệu', icon: IconMaterial },
     { id: 'elements', label: 'Yếu tố', icon: IconDetails },
@@ -241,39 +242,6 @@ const ControlBar: React.FC<ControlBarProps> = ({
                     <span className="text-xs font-semibold text-center">{panel.label}</span>
                   </button>
                 ))}
-              </div>
-              
-              {/* Quick Action: Generate Different Angle */}
-              <div className="mt-4">
-                <button
-                  onClick={() => {
-                    onGenerate(); // Generate với settings hiện tại
-                    setShowPanelDrawer(false);
-                  }}
-                  disabled={isLoading || !canGenerate}
-                  className={`w-full py-4 rounded-xl font-bold text-base transition-all ${
-                    isLoading || !canGenerate
-                      ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg active:scale-95'
-                  }`}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Đang tạo...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                      Tạo góc nhìn khác
-                    </span>
-                  )}
-                </button>
               </div>
               
               {/* Hint text */}

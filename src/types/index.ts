@@ -1,7 +1,7 @@
 import React from 'react';
 
 // App states
-export type PanelType = 'phongnam' | 'context' | 'category' | 'style' | 'materials' | 'elements' | 'dramatization' | 'aspectRatio' | 'scenery' | 'environment' | 'colors' | 'floorPlan' | 'views2d' | 'gallery';
+export type PanelType = 'phongnam' | 'context' | 'category' | 'style' | 'materials' | 'elements' | 'dramatization' | 'aspectRatio' | 'scenery' | 'environment' | 'colors' | 'floorPlan' | 'views2d' | 'gallery' | 'angleGeneration';
 export type AppMode = 'generate' | 'edit-select' | 'editing' | 'noting' | 'zoomed' | 'gallery';
 
 // Image & File related
