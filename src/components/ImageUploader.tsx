@@ -145,7 +145,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ id, label, previewUrl, on
         id={id}
         type="file"
         accept="image/png, image/jpeg, image/webp, image/*"
-        capture="environment"
         ref={fileInputRef}
         onChange={handleFileChange}
         className="sr-only"

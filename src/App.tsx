@@ -431,109 +431,15 @@ const App: React.FC = () => {
     };
     
     const handleGalleryGenerateFromImage = async (image: RenovationResult) => {
-        try {
-            // Set image as selected để handleGenerate có thể dùng
-            setSelectedImage(image);
-            
-            // Generate góc nhìn mới với prompt tương tự nhưng góc khác
-            const newAnglePrompt = `${image.prompt}. Tạo góc nhìn khác của cùng thiết kế này, góc chụp và phối cảnh khác.`;
-            
-            setIsLoading(true);
-            setError(null);
-            
-            const sourceImageFile = await dataUrlToImageFile(image.imageUrl, `gallery-angle-${image.id}.png`);
-            
-            // Generate ảnh mới
-            const { base64Image } = await generateImage(
-                newAnglePrompt, 
-                sourceImageFile.file,
-                referenceImageFile?.file
-            );
-            const imageUrl = `data:image/png;base64,${base64Image}`;
-            
-            // Tạo result mới KHÔNG có description (không tạo thuyết minh cho ảnh từ gallery)
-            const newResult: RenovationResult = {
-                id: `res_angle_${Date.now()}`,
-                imageUrl,
-                sourceImageUrl: image.imageUrl,
-                prompt: newAnglePrompt,
-                description: "", // Không tạo thuyết minh
-                width: image.width,
-                height: image.height,
-            };
-            setResults(prev => [newResult, ...prev]);
-            setSelectedImage(newResult);
-            
-            // Lưu vào Gallery
-            saveToGallery(newResult);
-            
-            // Lưu vào thư mục local nếu đã chọn
-            try {
-                await saveImageToLocalDirectory(imageUrl, `generated_${newResult.id}.png`);
-            } catch (localErr) {
-                console.warn('Could not save to local directory:', localErr);
-            }
-            
-            setIsLoading(false);
-            
-        } catch (err: any) {
-            console.error('Error generating new angle from gallery:', err);
-            setError(err.message || 'Không thể tạo góc nhìn mới');
-            setIsLoading(false);
-        }
+        // Chỉ set ảnh và chuyển sang panel views2d để user chọn góc nhìn
+        setSelectedImage(image);
+        setActivePanel('views2d');
     };
     
     const handleGalleryGenerate2D = async (image: RenovationResult) => {
-        try {
-            // Set image as selected
-            setSelectedImage(image);
-            
-            // Generate bản vẽ 2D từ ảnh 3D
-            const convert2DPrompt = `Chuyển đổi ảnh 3D này thành bản vẽ 2D kiến trúc, giữ nguyên thiết kế và chi tiết. Phong cách bản vẽ kỹ thuật rõ ràng, đường nét sắc sảo.`;
-            
-            setIsLoading(true);
-            setError(null);
-            
-            const sourceImageFile = await dataUrlToImageFile(image.imageUrl, `gallery-2d-${image.id}.png`);
-            
-            // Generate ảnh 2D
-            const { base64Image } = await generateImage(
-                convert2DPrompt, 
-                sourceImageFile.file,
-                undefined // Không dùng reference image cho 2D
-            );
-            const imageUrl = `data:image/png;base64,${base64Image}`;
-            
-            // Tạo result mới KHÔNG có description
-            const newResult: RenovationResult = {
-                id: `res_2d_${Date.now()}`,
-                imageUrl,
-                sourceImageUrl: image.imageUrl,
-                prompt: convert2DPrompt,
-                description: "", // Không tạo thuyết minh
-                width: image.width,
-                height: image.height,
-            };
-            setResults(prev => [newResult, ...prev]);
-            setSelectedImage(newResult);
-            
-            // Lưu vào Gallery
-            saveToGallery(newResult);
-            
-            // Lưu vào thư mục local nếu đã chọn
-            try {
-                await saveImageToLocalDirectory(imageUrl, `generated_${newResult.id}.png`);
-            } catch (localErr) {
-                console.warn('Could not save to local directory:', localErr);
-            }
-            
-            setIsLoading(false);
-            
-        } catch (err: any) {
-            console.error('Error generating 2D from gallery:', err);
-            setError(err.message || 'Không thể tạo bản vẽ 2D');
-            setIsLoading(false);
-        }
+        // Chỉ set ảnh và chuyển sang panel views2d để user chọn loại bản vẽ 2D
+        setSelectedImage(image);
+        setActivePanel('views2d');
     };
 
     const renderActivePanel = () => {
