@@ -158,6 +158,10 @@ const Lightbox: React.FC<LightboxProps> = ({ results, currentIndex, onNavigate, 
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [isComparing, setIsComparing] = useState(false);
+  
+  // Touch gesture states
+  const [lastTouchDistance, setLastTouchDistance] = useState<number | null>(null);
+  const [touchStartOffset, setTouchStartOffset] = useState({ x: 0, y: 0 });
 
 
   const resetZoom = useCallback(() => {
@@ -223,6 +227,90 @@ const Lightbox: React.FC<LightboxProps> = ({ results, currentIndex, onNavigate, 
         setIsPanning(false);
     }
   };
+  
+  // Touch gesture handlers for mobile pinch-to-zoom and pan
+  const getTouchDistance = (touches: React.TouchList) => {
+    if (touches.length < 2) return null;
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+  
+  const getTouchCenter = (touches: React.TouchList) => {
+    if (touches.length === 0) return { x: 0, y: 0 };
+    const touchArray = Array.from(touches) as Touch[];
+    const sumX = touchArray.reduce((sum, touch) => sum + touch.clientX, 0);
+    const sumY = touchArray.reduce((sum, touch) => sum + touch.clientY, 0);
+    return {
+      x: sumX / touches.length,
+      y: sumY / touches.length
+    };
+  };
+  
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      // Pinch zoom start
+      e.preventDefault();
+      const distance = getTouchDistance(e.touches);
+      setLastTouchDistance(distance);
+      setTouchStartOffset({ ...offset });
+    } else if (e.touches.length === 1 && scale > 1) {
+      // Pan start (only when zoomed)
+      e.preventDefault();
+      setIsPanning(true);
+      setPanStart({ 
+        x: e.touches[0].clientX - offset.x, 
+        y: e.touches[0].clientY - offset.y 
+      });
+    }
+  };
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && lastTouchDistance) {
+      // Pinch zoom
+      e.preventDefault();
+      const distance = getTouchDistance(e.touches);
+      if (!distance) return;
+      
+      const scaleChange = distance / lastTouchDistance;
+      const newScale = Math.max(0.2, Math.min(10, scale * scaleChange));
+      
+      // Get touch center for zoom origin
+      const touchCenter = getTouchCenter(e.touches);
+      const container = document.querySelector('.lightbox-container');
+      if (!container) return;
+      
+      const rect = container.getBoundingClientRect();
+      const centerX = touchCenter.x - rect.left;
+      const centerY = touchCenter.y - rect.top;
+      
+      // Calculate offset to zoom towards touch center
+      const imageX = (centerX - offset.x) / scale;
+      const imageY = (centerY - offset.y) / scale;
+      
+      const newOffsetX = centerX - imageX * newScale;
+      const newOffsetY = centerY - imageY * newScale;
+      
+      setScale(newScale);
+      setOffset({ x: newOffsetX, y: newOffsetY });
+      setLastTouchDistance(distance);
+    } else if (e.touches.length === 1 && isPanning) {
+      // Pan
+      e.preventDefault();
+      const newOffsetX = e.touches[0].clientX - panStart.x;
+      const newOffsetY = e.touches[0].clientY - panStart.y;
+      setOffset({ x: newOffsetX, y: newOffsetY });
+    }
+  };
+  
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length < 2) {
+      setLastTouchDistance(null);
+    }
+    if (e.touches.length === 0) {
+      setIsPanning(false);
+    }
+  };
 
   const zoomWithButtons = (direction: 'in' | 'out') => {
       const zoomFactor = 1.5;
@@ -286,6 +374,9 @@ const Lightbox: React.FC<LightboxProps> = ({ results, currentIndex, onNavigate, 
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={() => setIsPanning(false)}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <div 
           className="relative" 
