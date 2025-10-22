@@ -386,10 +386,11 @@ const EditCanvas: React.FC<EditCanvasProps> = ({
     }, [polygonPoints, activeTool]);
 
     return (
-        <div className="flex h-full gap-4">
+        <div className="flex flex-col lg:flex-row h-full gap-2 lg:gap-4">
+            {/* Canvas - Full screen on mobile */}
             <div
                 ref={containerRef}
-                className="flex-grow h-full bg-gray-900 dark:bg-gray-950 rounded-2xl flex items-center justify-center p-4 relative overflow-hidden"
+                className="flex-grow h-full lg:h-full bg-gray-900 dark:bg-gray-950 rounded-xl lg:rounded-2xl flex items-center justify-center p-2 lg:p-4 relative overflow-hidden"
             >
                 <img
                     ref={imageRef}
@@ -403,20 +404,125 @@ const EditCanvas: React.FC<EditCanvasProps> = ({
                     ref={displayCanvasRef}
                     width={canvasSize.width}
                     height={canvasSize.height}
-                    className="absolute cursor-crosshair"
+                    className="absolute cursor-crosshair touch-none"
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
                     onClick={handleCanvasClick}
+                    onTouchStart={(e) => {
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const mouseEvent = new MouseEvent('mousedown', {
+                            clientX: touch.clientX,
+                            clientY: touch.clientY,
+                            bubbles: true
+                        });
+                        e.currentTarget.dispatchEvent(mouseEvent);
+                    }}
+                    onTouchMove={(e) => {
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const mouseEvent = new MouseEvent('mousemove', {
+                            clientX: touch.clientX,
+                            clientY: touch.clientY,
+                            bubbles: true
+                        });
+                        e.currentTarget.dispatchEvent(mouseEvent);
+                    }}
+                    onTouchEnd={(e) => {
+                        e.preventDefault();
+                        const mouseEvent = new MouseEvent('mouseup', {
+                            bubbles: true
+                        });
+                        e.currentTarget.dispatchEvent(mouseEvent);
+                    }}
                 />
                 {/* Mask canvas - hidden, for AI */}
                 <canvas
                     ref={maskCanvasRef}
                     className="hidden"
                 />
+                
+                {/* Mobile: Floating toolbar at bottom */}
+                <div className="lg:hidden absolute bottom-4 left-0 right-0 px-4">
+                  <div className="bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-2xl p-3 space-y-2">
+                    {/* Tool selector */}
+                    <div className="flex gap-2 justify-center">
+                      <button
+                        onClick={() => setActiveTool('brush')}
+                        className={`p-2 rounded-lg ${activeTool === 'brush' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setActiveTool('rectangle')}
+                        className={`p-2 rounded-lg ${activeTool === 'rectangle' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <rect x="4" y="4" width="16" height="16" strokeWidth={2} rx="2"/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setActiveTool('ellipse')}
+                        className={`p-2 rounded-lg ${activeTool === 'ellipse' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="8" strokeWidth={2}/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setActiveTool('polygon')}
+                        className={`p-2 rounded-lg ${activeTool === 'polygon' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21l3-9 9-3-9-3-3-9-3 9-9 3 9 3z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={clearCanvas}
+                        className="p-2 rounded-lg bg-red-600 text-white"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                    
+                    {/* Brush size */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-300 w-16">Cỡ: {brushSize}px</span>
+                      <input
+                        type="range"
+                        min="10"
+                        max="100"
+                        value={brushSize}
+                        onChange={(e) => setBrushSize(Number(e.target.value))}
+                        className="flex-1"
+                      />
+                    </div>
+                    
+                    {/* Actions */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={onCancel}
+                        className="flex-1 py-2 bg-gray-700 text-white rounded-lg text-sm font-semibold"
+                      >
+                        Hủy
+                      </button>
+                      <button
+                        onClick={handleEditSubmit}
+                        className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold"
+                      >
+                        Thực hiện
+                      </button>
+                    </div>
+                  </div>
+                </div>
             </div>
-            <div className="w-96 flex-shrink-0 flex flex-col gap-2">
+            
+            {/* Desktop: Sidebar panel */}
+            <div className="hidden lg:flex w-96 flex-shrink-0 flex-col gap-2 overflow-y-auto">
                 {/* Thumbnails của các ảnh đã chỉnh sửa */}
                 <EditResultThumbnails
                     results={results}
@@ -440,7 +546,7 @@ const EditCanvas: React.FC<EditCanvasProps> = ({
                 />
                 <button 
                     onClick={clearCanvas} 
-                    className="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors shadow-lg"
+                    className="w-full py-3 text-base bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors shadow-lg"
                 >
                     🗑️ Xóa vùng chọn
                 </button>
@@ -456,4 +562,3 @@ const EditCanvas: React.FC<EditCanvasProps> = ({
 };
 
 export default EditCanvas;
-

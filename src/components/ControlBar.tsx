@@ -9,7 +9,6 @@ import {
   IconDetails,
   IconDramatization,
   IconEdit,
-  IconFloorPlan,
   IconGallery,
   IconImage,
   IconInfo,
@@ -26,6 +25,7 @@ interface ControlBarProps {
   onGenerate: () => void;
   isLoading: boolean;
   canGenerate: boolean;
+  renderActivePanel?: () => React.ReactNode;
 }
 
 const NavButton: React.FC<{
@@ -78,20 +78,20 @@ const ControlBar: React.FC<ControlBarProps> = ({
   onGenerate,
   isLoading,
   canGenerate,
+  renderActivePanel,
 }) => {
   const [showPanelDrawer, setShowPanelDrawer] = useState(false);
+  const [showContentDrawer, setShowContentDrawer] = useState(false);
 
   const PANELS: { id: PanelType, label: string, icon: React.FC<any> }[] = [
     { id: 'phongnam', label: 'Phong Nam', icon: IconInfo },
-    { id: 'context', label: 'Hiện trạng', icon: IconImage },
-    { id: 'category', label: 'Hạng mục', icon: IconFloorPlan },
+    { id: 'context', label: 'Hình ảnh', icon: IconImage },
+    { id: 'views2d', label: 'Bản vẽ 2D', icon: IconViewPlan },
     { id: 'style', label: 'Tiếp cận', icon: IconStyle },
     { id: 'materials', label: 'Vật liệu', icon: IconMaterial },
     { id: 'elements', label: 'Yếu tố', icon: IconDetails },
     { id: 'dramatization', label: 'Diễn họa', icon: IconDramatization },
     { id: 'aspectRatio', label: 'Tỉ lệ', icon: IconAspectRatio },
-    { id: 'gallery', label: 'Thư viện', icon: IconGallery },
-    { id: 'views2d', label: 'Bản vẽ 2D', icon: IconViewPlan },
   ];
 
   return (
@@ -141,17 +141,45 @@ const ControlBar: React.FC<ControlBarProps> = ({
 
       {/* Mobile Version - Bottom Navigation */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-2xl z-50">
-        <div className="flex items-center justify-around px-2 py-1 pb-safe">
+        <div className="flex items-center justify-around px-2 py-2 pb-safe">
           {/* Panels Button */}
           <MobileNavButton
-            label="Tùy chọn"
+            label="Thiết kế"
             isActive={showPanelDrawer}
             onClick={() => setShowPanelDrawer(!showPanelDrawer)}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
           </MobileNavButton>
+
+          {/* Generate Button - CENTER & PROMINENT */}
+          <button
+            onClick={onGenerate}
+            disabled={isLoading || !canGenerate}
+            className={`flex flex-col items-center justify-center px-8 py-2.5 rounded-xl transition-all transform flex-1 max-w-[140px] ${
+              isLoading || !canGenerate
+                ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg active:scale-95'
+            }`}
+          >
+            {isLoading ? (
+              <>
+                <svg className="animate-spin h-6 w-6" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <span className="text-xs font-bold mt-1">Đang tạo...</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span className="text-xs font-bold mt-1">PHÁC THẢO</span>
+              </>
+            )}
+          </button>
 
           {/* Gallery */}
           <MobileNavButton
@@ -161,62 +189,10 @@ const ControlBar: React.FC<ControlBarProps> = ({
               setAppMode('generate');
               onPanelChange('gallery');
               setShowPanelDrawer(false);
+              setShowContentDrawer(false);
             }}
           >
             <IconGallery className="w-6 h-6" />
-          </MobileNavButton>
-
-          {/* Generate Button */}
-          <button
-            onClick={onGenerate}
-            disabled={isLoading || !canGenerate}
-            className={`flex flex-col items-center justify-center px-6 py-2 rounded-xl transition-all transform flex-1 max-w-[120px] ${
-              isLoading || !canGenerate
-                ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg active:scale-95'
-            }`}
-          >
-            {isLoading ? (
-              <>
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                <span className="text-[10px] font-semibold mt-1">Xử lý...</span>
-              </>
-            ) : (
-              <>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                <span className="text-[10px] font-semibold mt-1">Phác thảo</span>
-              </>
-            )}
-          </button>
-
-          {/* 2D Views */}
-          <MobileNavButton
-            label="Bản vẽ"
-            isActive={activePanel === 'views2d'}
-            onClick={() => {
-              setAppMode('generate');
-              onPanelChange('views2d');
-              setShowPanelDrawer(false);
-            }}
-          >
-            <IconViewPlan className="w-6 h-6" />
-          </MobileNavButton>
-
-          {/* Edit */}
-          <MobileNavButton
-            label="Chỉnh sửa"
-            isActive={appMode === 'edit-select' || appMode === 'editing'}
-            onClick={() => {
-              setAppMode('edit-select');
-              setShowPanelDrawer(false);
-            }}
-          >
-            <IconEdit className="w-6 h-6" />
           </MobileNavButton>
         </div>
       </div>
@@ -246,13 +222,14 @@ const ControlBar: React.FC<ControlBarProps> = ({
             
             <div className="p-4">
               <div className="grid grid-cols-3 gap-3">
-                {PANELS.slice(0, 8).map((panel) => (
+                {PANELS.map((panel) => (
                   <button
                     key={panel.id}
                     onClick={() => {
                       setAppMode('generate');
                       onPanelChange(panel.id);
-                      setShowPanelDrawer(false);
+                      setShowPanelDrawer(false); // Đóng drawer chọn panel
+                      setShowContentDrawer(true); // Mở drawer nội dung
                     }}
                     className={`flex flex-col items-center p-4 rounded-xl border-2 transition-all ${
                       activePanel === panel.id
@@ -265,6 +242,43 @@ const ControlBar: React.FC<ControlBarProps> = ({
                   </button>
                 ))}
               </div>
+              
+              {/* Hint text */}
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                <p className="text-xs text-center text-blue-700 dark:text-blue-300">
+                  💡 Chọn một tùy chọn để xem và điều chỉnh chi tiết
+                </p>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Content Drawer - Show panel content */}
+      {showContentDrawer && renderActivePanel && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="lg:hidden fixed inset-0 bg-black/50 z-50 animate-fade-in"
+            onClick={() => setShowContentDrawer(false)}
+          />
+          
+          {/* Drawer Content */}
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl z-50 animate-slide-up shadow-2xl overflow-hidden" style={{ maxHeight: '90vh' }}>
+            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between z-10">
+              <h3 className="text-lg font-bold">{PANELS.find(p => p.id === activePanel)?.label || 'Tùy chọn'}</h3>
+              <button
+                onClick={() => setShowContentDrawer(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="overflow-y-auto pb-20" style={{ maxHeight: 'calc(90vh - 70px)' }}>
+              {renderActivePanel()}
             </div>
           </div>
         </>

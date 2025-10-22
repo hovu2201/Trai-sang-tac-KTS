@@ -163,42 +163,42 @@ export const PanelGallery: React.FC<PanelGalleryProps> = ({
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="mb-4">
-        <div className="flex items-start justify-between gap-3 mb-3">
+      <div className="mb-3 lg:mb-4 px-3 lg:px-0">
+        <div className="flex items-start justify-between gap-2 lg:gap-3 mb-2 lg:mb-3">
           <div>
-            <h2 className="text-2xl font-bold mb-1 text-gray-900 dark:text-gray-100">
+            <h2 className="text-lg lg:text-2xl font-bold mb-0.5 lg:mb-1 text-gray-900 dark:text-gray-100">
               Thư viện Ảnh
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400">
               {images.length} ảnh • {images.filter(img => img.favorite).length} yêu thích
             </p>
           </div>
           
           {/* Action Buttons */}
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 lg:gap-2">
             {isFileSystemSupported() && (
               <>
                 <button
                   onClick={handleSelectDirectory}
-                  className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5"
+                  className="px-2 lg:px-3 py-1.5 lg:py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-[10px] lg:text-xs font-medium transition-colors flex items-center gap-1"
                   title="Chọn thư mục lưu trữ trên máy"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                   </svg>
-                  <span>Chọn thư mục</span>
+                  <span className="hidden lg:inline">Chọn thư mục</span>
                 </button>
                 
                 {localDirectory && (
                   <button
                     onClick={handleOpenDirectory}
-                    className="px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5"
+                    className="px-2 lg:px-3 py-1.5 lg:py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-[10px] lg:text-xs font-medium transition-colors flex items-center gap-1"
                     title="Xem thông tin thư mục đã lưu"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
                     </svg>
-                    <span>Mở</span>
+                    <span className="hidden lg:inline">Mở</span>
                   </button>
                 )}
               </>
@@ -207,10 +207,10 @@ export const PanelGallery: React.FC<PanelGalleryProps> = ({
             <button
               onClick={handleDownloadZip}
               disabled={images.length === 0}
-              className="px-3 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5"
+              className="px-2 lg:px-3 py-1.5 lg:py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-[10px] lg:text-xs font-medium transition-colors flex items-center gap-1"
               title="Tải tất cả ảnh về máy (ZIP)"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               <span>ZIP</span>
@@ -219,11 +219,11 @@ export const PanelGallery: React.FC<PanelGalleryProps> = ({
         </div>
 
         {/* Storage Info */}
-        <div className="space-y-2">
+        <div className="space-y-1.5 lg:space-y-2">
           {/* Local Directory Info */}
           {localDirectory && (
-            <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs text-blue-700 dark:text-blue-300">
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-1.5 lg:gap-2 p-1.5 lg:p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-[10px] lg:text-xs text-blue-700 dark:text-blue-300">
+              <svg className="w-3.5 h-3.5 lg:w-4 lg:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               <span className="truncate">Lưu vào: {localDirectory}</span>
@@ -232,13 +232,13 @@ export const PanelGallery: React.FC<PanelGalleryProps> = ({
 
           {/* Storage Usage Bar */}
           <div>
-            <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
+            <div className="flex items-center justify-between text-[10px] lg:text-xs text-gray-600 dark:text-gray-400 mb-0.5 lg:mb-1">
               <span>Bộ nhớ trình duyệt: {storageInfo.count} ảnh</span>
               <span className={storageInfo.percentage > 80 ? 'text-red-600 dark:text-red-400 font-semibold' : ''}>
                 {storageInfo.percentage}%
               </span>
             </div>
-            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-1.5 lg:h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all ${
                   storageInfo.percentage > 90
@@ -251,7 +251,7 @@ export const PanelGallery: React.FC<PanelGalleryProps> = ({
               />
             </div>
             {storageInfo.percentage > 80 && (
-              <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+              <p className="text-[10px] lg:text-xs text-red-600 dark:text-red-400 mt-0.5 lg:mt-1">
                 ⚠️ Gần đầy! Hãy tải ảnh về máy hoặc chọn thư mục lưu trữ.
               </p>
             )}
@@ -260,7 +260,7 @@ export const PanelGallery: React.FC<PanelGalleryProps> = ({
       </div>
 
       {/* Controls */}
-      <div className="mb-4 space-y-3">
+      <div className="mb-3 lg:mb-4 space-y-2 lg:space-y-3 px-3 lg:px-0">
         {/* Search */}
         <input
           type="text"

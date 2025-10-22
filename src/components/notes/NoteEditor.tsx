@@ -50,6 +50,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ imageToNote, onSave, onE
     const [history, setHistory] = useState<NoteState[]>([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
     const [hasChanges, setHasChanges] = useState(false);
+    const [showMobilePanel, setShowMobilePanel] = useState(false);
 
     const currentState = history[historyIndex];
     const { markers = [], textBoxes = [], legendBox = null, image = null } = currentState || {};
@@ -468,27 +469,39 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ imageToNote, onSave, onE
     
     return (
         <div className="w-screen h-screen bg-gray-900 flex flex-col text-white overflow-hidden">
-            <header className="flex-shrink-0 p-3 flex items-center justify-between bg-gray-800 z-20">
-                <div className="flex items-center gap-2">
-                    <button onClick={handleExitRequest} className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors text-sm font-semibold">Thoát</button>
-                    <NoteToolbar activeTool={activeTool} onToolSelect={(tool) => { setActiveTool(tool); setSelectedElement(null); }} />
-                    <button onClick={handleUndo} disabled={historyIndex <= 0} className="p-2.5 bg-gray-700 rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"><IconUndo className="w-5 h-5"/></button>
-                    <button onClick={handleRedo} disabled={historyIndex >= history.length - 1} className="p-2.5 bg-gray-700 rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"><IconRedo className="w-5 h-5"/></button>
-                    {!legendBox && <button onClick={addLegend} className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600 text-xs font-semibold flex items-center gap-1"><IconPlus className="w-4 h-4" /> Bảng chú thích</button>}
-                    {selectedElement && <button onClick={deleteSelected} className="p-2 bg-red-600/50 text-red-200 rounded-lg hover:bg-red-600/80"><IconTrash className="w-5 h-5"/></button>}
-                </div>
-                <div className="flex items-center gap-2">
-                    <button onClick={handleDownload} disabled={isSaving} className="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-500 transition-colors text-sm font-bold disabled:bg-gray-400 flex items-center gap-2">
-                        <DownloadIcon className="w-5 h-5"/> Tải về
+            <header className="flex-shrink-0 p-2 lg:p-3 flex items-center justify-between bg-gray-800 z-20">
+                <div className="flex items-center gap-1 lg:gap-2">
+                    <button onClick={handleExitRequest} className="px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors text-xs lg:text-sm font-semibold">Thoát</button>
+                    <div className="hidden lg:flex items-center gap-2">
+                      <NoteToolbar activeTool={activeTool} onToolSelect={(tool) => { setActiveTool(tool); setSelectedElement(null); }} />
+                      <button onClick={handleUndo} disabled={historyIndex <= 0} className="p-2.5 bg-gray-700 rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"><IconUndo className="w-5 h-5"/></button>
+                      <button onClick={handleRedo} disabled={historyIndex >= history.length - 1} className="p-2.5 bg-gray-700 rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"><IconRedo className="w-5 h-5"/></button>
+                      {!legendBox && <button onClick={addLegend} className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600 text-xs font-semibold flex items-center gap-1"><IconPlus className="w-4 h-4" /> Bảng chú thích</button>}
+                      {selectedElement && <button onClick={deleteSelected} className="p-2 bg-red-600/50 text-red-200 rounded-lg hover:bg-red-600/80"><IconTrash className="w-5 h-5"/></button>}
+                    </div>
+                    {/* Mobile: Menu button */}
+                    <button
+                      onClick={() => setShowMobilePanel(!showMobilePanel)}
+                      className="lg:hidden p-2 bg-gray-700 rounded-lg"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                      </svg>
                     </button>
-                    <button onClick={exportImage} disabled={isSaving} className="px-6 py-2 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-bold disabled:bg-indigo-400">
-                        {isSaving ? 'Đang xử lý...' : 'Hoàn thành'}
+                </div>
+                <div className="flex items-center gap-1 lg:gap-2">
+                    <button onClick={handleDownload} disabled={isSaving} className="hidden sm:flex px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-600 rounded-lg hover:bg-gray-500 transition-colors text-xs lg:text-sm font-bold disabled:bg-gray-400 items-center gap-1 lg:gap-2">
+                        <DownloadIcon className="w-4 h-4 lg:w-5 lg:h-5"/> Tải về
+                    </button>
+                    <button onClick={exportImage} disabled={isSaving} className="px-4 lg:px-6 py-1.5 lg:py-2 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors text-xs lg:text-sm font-bold disabled:bg-indigo-400">
+                        {isSaving ? 'Lưu...' : 'Hoàn thành'}
                     </button>
                 </div>
             </header>
             
-            <main className="flex-grow flex min-h-0">
-                <div className="w-80 flex-shrink-0 h-full bg-gray-800 border-r border-gray-700 p-4 overflow-y-auto">
+            <main className="flex-grow flex flex-col lg:flex-row min-h-0">
+                {/* Desktop: Sidebar */}
+                <div className="hidden lg:block w-80 flex-shrink-0 h-full bg-gray-800 border-r border-gray-700 p-4 overflow-y-auto">
                     {activeTool === 'crop' && !selectedElement && <CropOptionsPanel aspectRatio={cropAspectRatio} setAspectRatio={setCropAspectRatio} fillColor={cropFillColor} setFillColor={setCropFillColor} onApply={handleApplyCrop} onCancel={handleCancelCrop} onPickColor={handlePickColor} />}
                     {activeTool === 'marker' && !selectedElement && <MarkerOptionsPanel numberingStyle={numberingStyle} setNumberingStyle={setNumberingStyle} markerStyle={defaultMarkerStyle} setMarkerStyle={setDefaultMarkerStyle} />}
                     {activeTool === 'text' && !selectedElement && <TextOptionsPanel textStyle={defaultTextStyle} setTextStyle={setDefaultTextStyle} />}
@@ -497,7 +510,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ imageToNote, onSave, onE
                     {selectedElement?.type === 'legend' && legendBox && <LegendOptionsPanel markers={markers} onDescriptionChange={(id, desc) => updateState(s => ({...s, markers: s.markers.map(m => m.id === id ? {...m, description: desc} : m)}), true)} legendStyle={legendBox.style} setLegendStyle={style => updateState(s => ({...s, legendBox: s.legendBox ? {...s.legendBox, style} : null}), true)} />}
                 </div>
 
-                <div className="flex-grow flex items-center justify-center p-4 overflow-hidden relative" 
+                <div className="flex-grow flex items-center justify-center p-2 lg:p-4 overflow-hidden relative" 
                     ref={containerRef}
                     onMouseDown={handleContainerMouseDown}
                     onMouseMove={handleMouseMove}
@@ -554,6 +567,43 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ imageToNote, onSave, onE
                         <p>Zoom: {Math.round(transform.scale * 100)}%</p>
                         <p>X: {Math.round(transform.offsetX)}, Y: {Math.round(transform.offsetY)}</p>
                     </div>
+                    
+                    {/* Mobile: Bottom drawer */}
+                    {showMobilePanel && (
+                      <div className="lg:hidden absolute bottom-0 left-0 right-0 bg-gray-800 rounded-t-3xl shadow-2xl max-h-[60vh] overflow-y-auto z-30">
+                        <div className="sticky top-0 bg-gray-800 border-b border-gray-700 p-3 flex justify-between items-center">
+                          <h3 className="font-bold text-sm">Công cụ</h3>
+                          <button onClick={() => setShowMobilePanel(false)} className="p-1 hover:bg-gray-700 rounded">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                        <div className="p-4 space-y-3">
+                          <NoteToolbar activeTool={activeTool} onToolSelect={(tool) => { setActiveTool(tool); setSelectedElement(null); }} />
+                          <div className="flex gap-2">
+                            <button onClick={handleUndo} disabled={historyIndex <= 0} className="flex-1 p-2 bg-gray-700 rounded-lg disabled:opacity-50 text-sm">
+                              <IconUndo className="w-4 h-4 mx-auto"/>
+                              <span className="text-xs">Undo</span>
+                            </button>
+                            <button onClick={handleRedo} disabled={historyIndex >= history.length - 1} className="flex-1 p-2 bg-gray-700 rounded-lg disabled:opacity-50 text-sm">
+                              <IconRedo className="w-4 h-4 mx-auto"/>
+                              <span className="text-xs">Redo</span>
+                            </button>
+                          </div>
+                          {!legendBox && <button onClick={addLegend} className="w-full p-2 bg-gray-700 rounded-lg text-sm font-semibold flex items-center justify-center gap-2"><IconPlus className="w-4 h-4" /> Thêm bảng chú thích</button>}
+                          {selectedElement && <button onClick={deleteSelected} className="w-full p-2 bg-red-600 rounded-lg text-sm font-semibold flex items-center justify-center gap-2"><IconTrash className="w-4 h-4" /> Xóa</button>}
+                          
+                          {/* Options panels */}
+                          {activeTool === 'crop' && !selectedElement && <CropOptionsPanel aspectRatio={cropAspectRatio} setAspectRatio={setCropAspectRatio} fillColor={cropFillColor} setFillColor={setCropFillColor} onApply={handleApplyCrop} onCancel={handleCancelCrop} onPickColor={handlePickColor} />}
+                          {activeTool === 'marker' && !selectedElement && <MarkerOptionsPanel numberingStyle={numberingStyle} setNumberingStyle={setNumberingStyle} markerStyle={defaultMarkerStyle} setMarkerStyle={setDefaultMarkerStyle} />}
+                          {activeTool === 'text' && !selectedElement && <TextOptionsPanel textStyle={defaultTextStyle} setTextStyle={setDefaultTextStyle} />}
+                          {selectedMarker && <MarkerOptionsPanel numberingStyle={numberingStyle} setNumberingStyle={setNumberingStyle} markerStyle={selectedMarker.style} setMarkerStyle={style => updateState(s => ({...s, markers: s.markers.map(m => m.id === selectedMarker!.id ? {...m, style} : m)}), true)} description={selectedMarker.description} onDescriptionChange={desc => updateState(s => ({...s, markers: s.markers.map(m => m.id === selectedMarker!.id ? {...m, description: desc} : m)}), true)} inputRef={descriptionInputRef} />}
+                          {selectedTextBox && <TextOptionsPanel textStyle={selectedTextBox.style} setTextStyle={style => updateState(s => ({...s, textBoxes: s.textBoxes.map(t => t.id === selectedTextBox!.id ? {...t, style} : t)}), true)} content={selectedTextBox.content} onContentChange={content => updateState(s => ({...s, textBoxes: s.textBoxes.map(t => t.id === selectedTextBox!.id ? {...t, content, height: 'auto' } : t)}), true)} inputRef={contentInputRef} />}
+                          {selectedElement?.type === 'legend' && legendBox && <LegendOptionsPanel markers={markers} onDescriptionChange={(id, desc) => updateState(s => ({...s, markers: s.markers.map(m => m.id === id ? {...m, description: desc} : m)}), true)} legendStyle={legendBox.style} setLegendStyle={style => updateState(s => ({...s, legendBox: s.legendBox ? {...s.legendBox, style} : null}), true)} />}
+                        </div>
+                      </div>
+                    )}
                 </div>
             </main>
             <ConfirmExitModal isOpen={isExitModalOpen} onConfirm={onExit} onCancel={() => setIsExitModalOpen(false)} />

@@ -117,7 +117,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin }) => {
   }
 
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 overflow-hidden relative">
+    <div className="min-h-screen h-full w-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 overflow-y-auto relative">
       {/* Background Pattern - Đà Nẵng cityscape */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1555528208-47cd02d2c6ca?w=1920&q=80')] bg-cover bg-center"></div>
@@ -129,22 +129,22 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin }) => {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
-      <div className="relative z-10 h-full flex flex-col items-center justify-between p-4 sm:p-8 py-8 sm:py-12 overflow-y-auto">
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-between p-4 sm:p-8 py-8 sm:py-12">
         <div className="flex-1 flex flex-col items-center justify-center w-full max-w-6xl">
           {/* Logo & Title */}
-          <div className="text-center mb-6 sm:mb-8 md:mb-12 animate-fade-in">
-            <div className="inline-flex items-center justify-center w-32 sm:w-48 md:w-64 h-auto mb-4 sm:mb-6 animate-float">
+          <div className="text-center mb-8 sm:mb-12 animate-fade-in">
+            <div className="inline-flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 mb-4 sm:mb-6 animate-float">
               <img 
                 src="/logo.png" 
                 alt="Logo Trại Sáng tác Kiến trúc" 
-                className="w-full h-auto object-contain drop-shadow-2xl"
+                className="w-full h-full object-contain drop-shadow-2xl"
               />
             </div>
             
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-2 sm:mb-4 tracking-tight px-4">
-              HỘI KIẾN TRÚC SƯ TP ĐÀ NẴNG
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-3 sm:mb-4 tracking-tight px-4 leading-tight">
+              HỘI KIẾN TRÚC SƯ<br className="sm:hidden" /> TP ĐÀ NẴNG
             </h1>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-200 font-light mb-1 sm:mb-2 px-4">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-200 font-light mb-2 px-4">
               Trại Sáng tác Kiến trúc Đà Nẵng 2025
             </p>
             <p className="text-sm sm:text-base md:text-lg text-blue-300/80 max-w-2xl mx-auto px-4">
@@ -192,17 +192,17 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin }) => {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-md px-4">
+          <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md px-4 mb-8">
             <button
               onClick={() => setShowLogin(true)}
-              className="w-full px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-2xl text-base sm:text-lg"
+              className="w-full px-6 sm:px-8 py-4 sm:py-5 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-2xl text-lg sm:text-xl"
             >
               Bắt đầu sử dụng →
             </button>
             
             <button
               onClick={() => setShowInfoModal(true)}
-              className="w-full px-6 sm:px-8 py-3 sm:py-4 bg-white/10 backdrop-blur-lg hover:bg-white/20 text-white font-semibold rounded-xl border border-white/20 transition-all transform hover:scale-105 active:scale-95 text-base sm:text-lg"
+              className="w-full px-6 sm:px-8 py-4 sm:py-5 bg-white/10 backdrop-blur-lg hover:bg-white/20 text-white font-semibold rounded-xl border border-white/20 transition-all transform hover:scale-105 active:scale-95 text-lg sm:text-xl"
             >
               Tìm hiểu thêm
             </button>
@@ -210,10 +210,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin }) => {
         </div>
 
         {/* Footer - Responsive */}
-        <div className="mt-6 sm:mt-8 text-center text-blue-200/60 text-xs sm:text-sm max-w-2xl px-4 pb-safe">
+        <div className="text-center text-blue-200/60 text-xs sm:text-sm max-w-2xl px-4 pb-4 sm:pb-8">
           <p>© 2025 Trại Sáng tác Kiến trúc Đà Nẵng</p>
-          <p className="mt-1 hidden sm:block">Ứng dụng được tạo bởi: KTS. Hồ Lê Quốc Vũ - UV BCH Hội KTS TP Đà Nẵng</p>
-          <p className="mt-1 sm:hidden text-[10px]">KTS. Hồ Lê Quốc Vũ - UV BCH Hội KTS TP Đà Nẵng</p>
+          <p className="mt-2 text-[11px] sm:text-sm">Ứng dụng được tạo bởi: KTS. Hồ Lê Quốc Vũ - UV BCH Hội KTS TP Đà Nẵng</p>
         </div>
       </div>
 

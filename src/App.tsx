@@ -17,7 +17,6 @@ import { Panel2DViews } from './components/panels/Panel2DViews';
 import { PanelAspectRatio } from './components/panels/PanelAspectRatio';
 import { PanelDetails } from './components/panels/PanelDetails';
 import { PanelDramatization } from './components/panels/PanelDramatization';
-import { PanelFloorPlan } from './components/panels/PanelFloorPlan';
 import { PanelGallery } from './components/panels/PanelGallery';
 import { PanelImages } from './components/panels/PanelImages';
 import { PanelMaterials } from './components/panels/PanelMaterials';
@@ -274,30 +273,36 @@ const App: React.FC = () => {
                 console.warn('Could not save to local directory:', localErr);
             }
             
-            // Tạo description ngắn (không chặn UI)
-            generateShortDescription({
-                selectedStyle: selectedStyle.name,
-                selectedMaterials: selectedMaterials?.materials || [],
-                selectedElements: selectedElements.map(e => e.name),
-                selectedDramatization: selectedDramatization.map(d => d.name).join(', '),
-                prompt: mainPrompt
-            }).then(description => {
-                // Cập nhật description sau khi có
-                const updatedResult = { ...newResult, description };
-                setResults(prev => prev.map(r => r.id === newResult.id ? updatedResult : r));
-                setSelectedImage(updatedResult);
-                // Cập nhật gallery với description mới
-                saveToGallery(updatedResult);
-            }).catch(err => {
-                console.error("Error generating description:", err);
-                // Fallback description
-                const fallbackDesc = `Phương án ${selectedStyle.name} cho Làng cổ Phong Nam, kết hợp ${selectedMaterials?.name || 'vật liệu truyền thống'}.`;
-                const updatedResult = { ...newResult, description: fallbackDesc };
-                setResults(prev => prev.map(r => r.id === newResult.id ? updatedResult : r));
-                setSelectedImage(updatedResult);
-                // Cập nhật gallery với description mới
-                saveToGallery(updatedResult);
-            });
+            // Chỉ tạo description cho ảnh 3D ban đầu từ giao diện chính
+            // KHÔNG tạo cho: customPrompt (góc nhìn khác) hoặc views2d (bản vẽ 2D)
+            const shouldGenerateDescription = !customPrompt && activePanel !== 'views2d';
+            
+            if (shouldGenerateDescription) {
+                // Tạo description ngắn (không chặn UI)
+                generateShortDescription({
+                    selectedStyle: selectedStyle.name,
+                    selectedMaterials: selectedMaterials?.materials || [],
+                    selectedElements: selectedElements.map(e => e.name),
+                    selectedDramatization: selectedDramatization.map(d => d.name).join(', '),
+                    prompt: mainPrompt
+                }).then(description => {
+                    // Cập nhật description sau khi có
+                    const updatedResult = { ...newResult, description };
+                    setResults(prev => prev.map(r => r.id === newResult.id ? updatedResult : r));
+                    setSelectedImage(updatedResult);
+                    // Cập nhật gallery với description mới
+                    saveToGallery(updatedResult);
+                }).catch(err => {
+                    console.error("Error generating description:", err);
+                    // Fallback description
+                    const fallbackDesc = `Phương án ${selectedStyle.name} cho Làng cổ Phong Nam, kết hợp ${selectedMaterials?.name || 'vật liệu truyền thống'}.`;
+                    const updatedResult = { ...newResult, description: fallbackDesc };
+                    setResults(prev => prev.map(r => r.id === newResult.id ? updatedResult : r));
+                    setSelectedImage(updatedResult);
+                    // Cập nhật gallery với description mới
+                    saveToGallery(updatedResult);
+                });
+            }
         } catch (err: any) {
             setError(err.message || "An unknown error occurred during image generation.");
         } finally {
@@ -427,25 +432,107 @@ const App: React.FC = () => {
     
     const handleGalleryGenerateFromImage = async (image: RenovationResult) => {
         try {
-            const imageFile = await dataUrlToImageFile(image.imageUrl, `gallery-${image.id}.png`);
-            setBaseImageFile(imageFile);
+            // Set image as selected để handleGenerate có thể dùng
             setSelectedImage(image);
-            setActivePanel('views2d');
-        } catch (err) {
-            console.error('Error loading image from gallery:', err);
-            setError('Không thể tải ảnh từ thư viện');
+            
+            // Generate góc nhìn mới với prompt tương tự nhưng góc khác
+            const newAnglePrompt = `${image.prompt}. Tạo góc nhìn khác của cùng thiết kế này, góc chụp và phối cảnh khác.`;
+            
+            setIsLoading(true);
+            setError(null);
+            
+            const sourceImageFile = await dataUrlToImageFile(image.imageUrl, `gallery-angle-${image.id}.png`);
+            
+            // Generate ảnh mới
+            const { base64Image } = await generateImage(
+                newAnglePrompt, 
+                sourceImageFile.file,
+                referenceImageFile?.file
+            );
+            const imageUrl = `data:image/png;base64,${base64Image}`;
+            
+            // Tạo result mới KHÔNG có description (không tạo thuyết minh cho ảnh từ gallery)
+            const newResult: RenovationResult = {
+                id: `res_angle_${Date.now()}`,
+                imageUrl,
+                sourceImageUrl: image.imageUrl,
+                prompt: newAnglePrompt,
+                description: "", // Không tạo thuyết minh
+                width: image.width,
+                height: image.height,
+            };
+            setResults(prev => [newResult, ...prev]);
+            setSelectedImage(newResult);
+            
+            // Lưu vào Gallery
+            saveToGallery(newResult);
+            
+            // Lưu vào thư mục local nếu đã chọn
+            try {
+                await saveImageToLocalDirectory(imageUrl, `generated_${newResult.id}.png`);
+            } catch (localErr) {
+                console.warn('Could not save to local directory:', localErr);
+            }
+            
+            setIsLoading(false);
+            
+        } catch (err: any) {
+            console.error('Error generating new angle from gallery:', err);
+            setError(err.message || 'Không thể tạo góc nhìn mới');
+            setIsLoading(false);
         }
     };
     
     const handleGalleryGenerate2D = async (image: RenovationResult) => {
         try {
-            const imageFile = await dataUrlToImageFile(image.imageUrl, `gallery-${image.id}.png`);
-            setBaseImageFile(imageFile);
+            // Set image as selected
             setSelectedImage(image);
-            setActivePanel('views2d');
-        } catch (err) {
-            console.error('Error loading image from gallery:', err);
-            setError('Không thể tải ảnh từ thư viện');
+            
+            // Generate bản vẽ 2D từ ảnh 3D
+            const convert2DPrompt = `Chuyển đổi ảnh 3D này thành bản vẽ 2D kiến trúc, giữ nguyên thiết kế và chi tiết. Phong cách bản vẽ kỹ thuật rõ ràng, đường nét sắc sảo.`;
+            
+            setIsLoading(true);
+            setError(null);
+            
+            const sourceImageFile = await dataUrlToImageFile(image.imageUrl, `gallery-2d-${image.id}.png`);
+            
+            // Generate ảnh 2D
+            const { base64Image } = await generateImage(
+                convert2DPrompt, 
+                sourceImageFile.file,
+                undefined // Không dùng reference image cho 2D
+            );
+            const imageUrl = `data:image/png;base64,${base64Image}`;
+            
+            // Tạo result mới KHÔNG có description
+            const newResult: RenovationResult = {
+                id: `res_2d_${Date.now()}`,
+                imageUrl,
+                sourceImageUrl: image.imageUrl,
+                prompt: convert2DPrompt,
+                description: "", // Không tạo thuyết minh
+                width: image.width,
+                height: image.height,
+            };
+            setResults(prev => [newResult, ...prev]);
+            setSelectedImage(newResult);
+            
+            // Lưu vào Gallery
+            saveToGallery(newResult);
+            
+            // Lưu vào thư mục local nếu đã chọn
+            try {
+                await saveImageToLocalDirectory(imageUrl, `generated_${newResult.id}.png`);
+            } catch (localErr) {
+                console.warn('Could not save to local directory:', localErr);
+            }
+            
+            setIsLoading(false);
+            
+        } catch (err: any) {
+            console.error('Error generating 2D from gallery:', err);
+            setError(err.message || 'Không thể tạo bản vẽ 2D');
+            setIsLoading(false);
         }
     };
 
@@ -455,7 +542,6 @@ const App: React.FC = () => {
         switch(activePanel) {
             case 'phongnam': return <PanelPhongNam darkMode={isDarkMode} />;
             case 'context': return <PanelImages baseImageUrl={baseImageFile?.url || null} referenceImageUrl={referenceImageFile?.url || null} onImageSelect={handleImageSelect} referenceStrength={referenceStrength} onReferenceStrengthChange={setReferenceStrength} inputFidelity={inputFidelity} onInputFidelityChange={setInputFidelity} mainPrompt={mainPrompt} onMainPromptChange={setMainPrompt} />;
-            case 'category': return <PanelFloorPlan floorPlanImage={floorPlanImage} onFileSelect={handleImageSelect} conversionOptions={CONVERSION_OPTIONS} selectedConversionType={selectedConversionType} onConversionTypeChange={setSelectedConversionType} roomTypes={ROOM_TYPES} selectedRoomType={selectedRoomType} onRoomTypeChange={setSelectedRoomType} />;
             case 'style': return <PanelStyle styles={[...ARCHITECTURAL_STYLES, ...INTERIOR_STYLES]} selectedStyle={selectedStyle.prompt} onStyleSelect={setSelectedStyle} hasReferenceImage={hasReferenceImage} />;
             case 'materials': return <PanelMaterials materialCategories={MATERIAL_COMBINATIONS} selectedCombination={selectedMaterials} onCombinationSelect={setSelectedMaterials} hasReferenceImage={hasReferenceImage} />;
             case 'elements': return <PanelDetails exteriorCategories={EXTERIOR_ARCHITECTURAL_DETAILS} interiorCategories={INTERIOR_ARCHITECTURAL_DETAILS} selectedElements={selectedElements} onSelectionChange={setSelectedElements} hasReferenceImage={hasReferenceImage} />;
@@ -505,8 +591,8 @@ const App: React.FC = () => {
     }
 
     return (
-        <div className="h-screen w-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-950 dark:to-blue-950 text-gray-900 dark:text-gray-100 flex flex-col font-sans">
-            <div className="hidden lg:block">
+        <div className="h-screen w-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-950 dark:to-blue-950 text-gray-900 dark:text-gray-100 flex flex-col font-sans overflow-hidden">
+            <div className="hidden lg:block flex-shrink-0">
               <Header 
                 activePanel={activePanel} 
                 onPanelChange={setActivePanel} 
@@ -521,72 +607,123 @@ const App: React.FC = () => {
               />
             </div>
 
-            <main className="flex-grow flex p-4 gap-4 overflow-hidden">
-                {/* Left Panel - Collapsible */}
+            <main className="flex-grow flex lg:p-2 gap-0 lg:gap-2 overflow-hidden">
+                {/* Left Panel - Dynamic Content - Desktop only */}
                 <CollapsiblePanel
                   position="left"
                   isCollapsed={isLeftPanelCollapsed}
                   onToggle={() => setIsLeftPanelCollapsed(!isLeftPanelCollapsed)}
                   title="Bảng điều khiển"
+                  className="hidden lg:flex"
                 >
-                  <div className="hidden lg:block">
-                    {renderActivePanel()}
-                  </div>
+                  {renderActivePanel()}
                 </CollapsiblePanel>
                 
-                {/* Center Canvas - Flexible */}
-                <div className="flex-grow flex flex-col gap-4 min-w-0 order-2">
-                    <div className="lg:hidden flex-shrink-0">
-                      <Header 
-                        activePanel={activePanel} 
-                        onPanelChange={setActivePanel} 
-                        appMode={appMode} 
-                        setAppMode={setAppMode} 
-                        onGenerate={() => handleGenerate()} 
-                        isLoading={isLoading} 
-                        canGenerate={canGenerate}
-                        onLogout={handleLogout}
-                        isDarkMode={isDarkMode}
-                        setIsDarkMode={setIsDarkMode}
-                      />
+                {/* Center Canvas - Full width on mobile, compact on desktop */}
+                <div className="flex-grow flex flex-col gap-0 lg:gap-2 min-w-0 w-full lg:order-2">
+                    {/* Mobile Header - Simple */}
+                    <div className="lg:hidden flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 py-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <img src="/logo.png" alt="Logo" className="h-8 w-auto" />
+                        <div>
+                          <h1 className="text-xs font-bold text-gray-900 dark:text-white leading-tight">
+                            Làng Phong Nam
+                          </h1>
+                          <p className="text-[10px] text-gray-600 dark:text-gray-400">
+                            Trại Sáng tác 2025
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-1">
+                        {/* Theme Toggle */}
+                        <button
+                          onClick={() => setIsDarkMode(!isDarkMode)}
+                          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-xl"
+                        >
+                          {isDarkMode ? '🌙' : '☀️'}
+                        </button>
+                        
+                        {/* Logout */}
+                        <button
+                          onClick={handleLogout}
+                          className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex-grow min-h-0">
-                      <ResultDisplay 
-                        isLoading={isLoading && results.length === 0}
-                        error={error}
-                        results={results}
-                        appMode={appMode}
-                        onImageSelectForEdit={handleImageSelectForEdit}
-                        selectedImage={selectedImage}
-                        onSelectImage={setSelectedImage}
-                        onImageZoom={handleImageZoom}
-                        onImageUploadForEdit={handleImageUploadForEdit}
-                      />
+                    
+                    {/* Main Display Area - Mobile: Account for bottom toolbar */}
+                    <div className="flex-grow min-h-0 overflow-auto pb-20 lg:pb-0">
+                      {/* Mobile Gallery View */}
+                      {activePanel === 'gallery' ? (
+                        <div className="lg:hidden h-full">
+                          <PanelGallery 
+                            onSelectImage={handleGallerySelectImage} 
+                            onEditImage={handleImageSelectForEdit} 
+                            onViewImage={handleImageZoom} 
+                            onGenerateFromImage={handleGalleryGenerateFromImage}
+                            onNoteImage={handleNoteRequest}
+                            onGenerateAngle={handleGalleryGenerateFromImage}
+                            onGenerate2D={handleGalleryGenerate2D}
+                          />
+                        </div>
+                      ) : (
+                        <ResultDisplay 
+                          isLoading={isLoading && results.length === 0}
+                          error={error}
+                          results={results}
+                          appMode={appMode}
+                          onImageSelectForEdit={handleImageSelectForEdit}
+                          selectedImage={selectedImage}
+                          onSelectImage={setSelectedImage}
+                          onImageZoom={handleImageZoom}
+                          onImageUploadForEdit={handleImageUploadForEdit}
+                          selectedStyle={selectedStyle}
+                          selectedMaterials={selectedMaterials}
+                          selectedElements={selectedElements}
+                          selectedDramatization={selectedDramatization}
+                          baseImageUrl={baseImageFile?.url}
+                          referenceImageUrl={referenceImageFile?.url}
+                          mainPrompt={mainPrompt}
+                        />
+                      )}
                     </div>
                 </div>
 
-                {/* Right Panel - Collapsible */}
+                {/* Right Panel - Collapsible - Desktop only */}
                 <CollapsiblePanel
                   position="right"
                   isCollapsed={isRightPanelCollapsed}
                   onToggle={() => setIsRightPanelCollapsed(!isRightPanelCollapsed)}
-                  title="Thông tin"
+                  title="Thông tin & Hành động"
+                  className="hidden lg:flex"
                 >
-                  <div className="hidden xl:block">
-                    <InfoPanel 
-                      selectedImage={selectedImage} 
-                      onGenerateAngle={(prompt) => handleGenerate(prompt)} 
-                      isLoading={isLoading} 
-                      selectedStyle={selectedStyle}
-                      selectedMaterials={selectedMaterials}
-                      selectedElements={selectedElements}
-                      selectedDramatization={selectedDramatization}
-                    />
-                  </div>
+                  <InfoPanel 
+                    selectedImage={selectedImage} 
+                    onGenerateAngle={(prompt) => handleGenerate(prompt)} 
+                    isLoading={isLoading} 
+                    selectedStyle={selectedStyle}
+                    selectedMaterials={selectedMaterials}
+                    selectedElements={selectedElements}
+                    selectedDramatization={selectedDramatization}
+                  />
                 </CollapsiblePanel>
                 
                 <div className="lg:hidden">
-                  <ControlBar activePanel={activePanel} onPanelChange={setActivePanel} appMode={appMode} setAppMode={setAppMode} onGenerate={() => handleGenerate()} isLoading={isLoading} canGenerate={canGenerate} />
+                  <ControlBar 
+                    activePanel={activePanel} 
+                    onPanelChange={setActivePanel} 
+                    appMode={appMode} 
+                    setAppMode={setAppMode} 
+                    onGenerate={() => handleGenerate()} 
+                    isLoading={isLoading} 
+                    canGenerate={canGenerate}
+                    renderActivePanel={renderActivePanel}
+                  />
                 </div>
             </main>
             

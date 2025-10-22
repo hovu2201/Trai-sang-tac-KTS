@@ -8,6 +8,7 @@ interface CollapsiblePanelProps {
   isCollapsed: boolean;
   onToggle: () => void;
   title?: string;
+  className?: string;
 }
 
 export const CollapsiblePanel: React.FC<CollapsiblePanelProps> = ({
@@ -15,16 +16,28 @@ export const CollapsiblePanel: React.FC<CollapsiblePanelProps> = ({
   position,
   isCollapsed,
   onToggle,
-  title = 'Panel'
+  title = 'Panel',
+  className = ''
 }) => {
   const isLeft = position === 'left';
+  
+  // VỊ TRÍ NÚT TOGGLE - ĐƠN GIẢN HÓA
+  const buttonPosition = isLeft 
+    ? (isCollapsed ? 'right-0' : '-right-3')     // Panel trái: nhô ra mép phải
+    : (isCollapsed ? '-left-6' : '-left-3');     // Panel phải: nhô ra mép trái (ĐỐI XỨNG)
+  
+  // HƯỚNG MŨI TÊN
+  const arrowRotation = isCollapsed 
+    ? (isLeft ? 'rotate-180' : 'rotate-0')     // Collapsed: trái←, phải→
+    : (isLeft ? 'rotate-0' : 'rotate-180');    // Expanded: trái→, phải←
   
   return (
     <div 
       className={`
-        relative flex-shrink-0 transition-all duration-300 ease-in-out
-        ${isCollapsed ? 'w-0' : 'w-[380px]'}
+        relative flex-shrink-0 transition-all duration-300 ease-in-out overflow-visible
+        ${isCollapsed ? 'w-0' : 'w-[320px]'}
         ${isLeft ? 'order-1' : 'order-3'}
+        ${className}
       `}
     >
       {/* Panel Content */}
@@ -38,7 +51,7 @@ export const CollapsiblePanel: React.FC<CollapsiblePanelProps> = ({
         </div>
       </div>
 
-      {/* Toggle Button - Top Quarter Position */}
+      {/* Toggle Button */}
       <Tooltip 
         text={isCollapsed ? `Mở ${title}` : `Đóng ${title}`}
         position={isLeft ? 'right' : 'left'}
@@ -46,8 +59,8 @@ export const CollapsiblePanel: React.FC<CollapsiblePanelProps> = ({
         <button
           onClick={onToggle}
           className={`
-            absolute top-24 z-20
-            ${isLeft ? (isCollapsed ? 'right-0' : '-right-3') : (isCollapsed ? 'left-0' : '-left-3')}
+            absolute top-24 z-[100] pointer-events-auto
+            ${buttonPosition}
             w-6 h-12 bg-gradient-to-br from-blue-500 to-purple-600 
             rounded-full shadow-lg hover:shadow-xl
             flex items-center justify-center
@@ -59,10 +72,7 @@ export const CollapsiblePanel: React.FC<CollapsiblePanelProps> = ({
             className={`
               w-3.5 h-3.5 text-white
               transition-transform duration-300
-              ${isCollapsed 
-                ? (isLeft ? 'rotate-180' : '') 
-                : (isLeft ? '' : 'rotate-180')
-              }
+              ${arrowRotation}
               group-hover:scale-110
             `}
             fill="none" 
