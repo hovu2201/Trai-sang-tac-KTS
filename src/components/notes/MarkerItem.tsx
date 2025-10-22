@@ -77,24 +77,23 @@ const MarkerItem: React.FC<MarkerItemProps> = ({ marker, isSelected, onSelect, o
                     color: marker.style.textColor,
                     boxShadow: '0 2px 5px rgba(0,0,0,0.3)',
                     fontFamily: marker.style.fontFamily,
-                    fontSize: `${marker.style.fontSize}vh`,
+                    fontSize: `${marker.style.fontSize * 1.8}vh`, // Tăng size chữ lên 1.8 lần
                     fontWeight: marker.style.fontWeight,
                     fontStyle: marker.style.fontStyle,
-                    lineHeight: 1.1,
+                    lineHeight: 1,
                     cursor: 'grab',
                     transform: isSelected ? 'scale(1.1)' : 'scale(1)',
                     textTransform: ALL_CAPS_FONTS.includes(marker.style.fontFamily) ? 'uppercase' : 'none',
-                    // Đảm bảo marker có kích thước tự động điều chỉnh theo fontSize
-                    minWidth: '1.5em',
-                    minHeight: '1.5em',
-                    width: 'auto',
-                    height: 'auto',
-                    padding: '0.2em 0.4em',
+                    // Căn giữa hoàn hảo cho marker - tăng kích thước viền
+                    width: marker.style.shape === 'circle' ? '3em' : 'auto',
+                    height: marker.style.shape === 'circle' ? '3em' : 'auto',
+                    minWidth: marker.style.shape === 'circle' ? '3em' : '2em',
+                    minHeight: marker.style.shape === 'circle' ? '3em' : '2em',
+                    padding: marker.style.shape === 'circle' ? '0' : '0.3em 0.5em',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     textAlign: 'center',
-                    aspectRatio: marker.style.shape === 'circle' ? '1' : 'auto',
                 }}
             >
                 {isEditingLabel ? (
@@ -114,17 +113,22 @@ const MarkerItem: React.FC<MarkerItemProps> = ({ marker, isSelected, onSelect, o
                             fontWeight: 'inherit',
                             fontStyle: 'inherit',
                             textTransform: 'inherit',
-                            width: 'auto',
+                            width: marker.style.shape === 'circle' ? '100%' : 'auto',
                             minWidth: '1em',
                             textAlign: 'center',
+                            lineHeight: 1,
                         }}
                     />
                 ) : (
                     <span style={{ 
                         whiteSpace: 'nowrap',
                         textAlign: 'center',
-                        display: 'block',
-                        width: '100%'
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '100%',
+                        height: '100%',
+                        lineHeight: 1,
                     }}>
                         {marker.label}
                     </span>

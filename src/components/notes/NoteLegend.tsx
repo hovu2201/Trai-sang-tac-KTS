@@ -1,5 +1,13 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { NoteMarker, LegendBox } from '../../types';
+import React, {
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
+
+import {
+  LegendBox,
+  NoteMarker,
+} from '../../types';
 
 interface NoteLegendProps {
     markers: NoteMarker[];
@@ -133,9 +141,21 @@ const NoteLegend: React.FC<NoteLegendProps> = ({ markers, onDescriptionChange, l
                         className={`flex items-start gap-2 ${style.showDividers && index > 0 && !style.itemSpacing ? "border-t border-gray-500/50 pt-2 mt-2" : ""}`}
                         style={{ ...itemBaseStyle, ...getItemRowStyle(marker, index) }}
                     >
-                        <div className={`w-6 h-6 flex items-center justify-center font-bold text-xs flex-shrink-0 mt-1 mx-auto ${marker.style.shape === 'circle' ? 'rounded-full' : 'rounded-sm'}`} 
-                             style={{ backgroundColor: marker.style.backgroundColor, opacity: marker.style.backgroundOpacity, borderColor: marker.style.borderColor, borderWidth: `${marker.style.borderWidth}px`, color: marker.style.textColor }}>
-                            {marker.label}
+                        <div className={`w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0 ${marker.style.shape === 'circle' ? 'rounded-full' : 'rounded-sm'}`} 
+                             style={{ 
+                                backgroundColor: marker.style.backgroundColor, 
+                                opacity: marker.style.backgroundOpacity, 
+                                borderColor: marker.style.borderColor, 
+                                borderWidth: `${marker.style.borderWidth}px`, 
+                                color: marker.style.textColor,
+                                lineHeight: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: 0,
+                                fontSize: '1rem', // Tăng kích thước chữ trong legend
+                            }}>
+                            <span style={{ lineHeight: 1 }}>{marker.label}</span>
                         </div>
                         <div className="w-full">
                             <AutoResizingTextarea
